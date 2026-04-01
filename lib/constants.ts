@@ -41,3 +41,19 @@ export type QualityLevel = 'high' | 'medium' | 'low'
 
 export const SECTIONS = ['hero', 'projects', 'about', 'services', 'team', 'testimonials', 'contact'] as const
 export type SectionId = typeof SECTIONS[number]
+
+export const COLOR_STAGES = [
+  { primary: [0.0, 1.0, 1.0],   secondary: [0.0, 0.2, 0.4] },
+  { primary: [0.0, 0.53, 1.0],  secondary: [0.33, 0.0, 0.8] },
+  { primary: [0.0, 0.8, 0.67],  secondary: [0.0, 0.4, 0.53] },
+  { primary: [0.48, 0.0, 1.0],  secondary: [0.8, 0.0, 0.53] },
+  { primary: [0.0, 1.0, 1.0],   secondary: [0.67, 0.87, 1.0] },
+] as const
+
+export const CAMERA_WAYPOINTS = [
+  { pos: [0, 0.5, 15]   as const, lookAt: [0, 0, 5]    as const },
+  { pos: [4, 1.5, 8]    as const, lookAt: [0, 0.5, 0]  as const },
+  { pos: [0, 2, 3]      as const, lookAt: [0, -0.5, -1] as const },
+  { pos: [-3, 0.5, -2]  as const, lookAt: [0, 0, -5]   as const },
+  { pos: [0, -0.5, -8]  as const, lookAt: [0, 0, -3]   as const },
+] as const

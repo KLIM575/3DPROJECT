@@ -33,3 +33,26 @@ export function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = clamp((x - edge0) / (edge1 - edge0), 0, 1)
   return t * t * (3 - 2 * t)
 }
+
+export function interpolateColorStages(
+  progress: number,
+  stages: readonly { primary: readonly number[]; secondary: readonly number[] }[]
+): { primary: [number, number, number]; secondary: [number, number, number] } {
+  const p = Math.min(progress, 0.999) * (stages.length - 1)
+  const idx = Math.floor(p)
+  const t = p - idx
+  const a = stages[idx]
+  const b = stages[Math.min(idx + 1, stages.length - 1)]
+  return {
+    primary: [
+      a.primary[0] + (b.primary[0] - a.primary[0]) * t,
+      a.primary[1] + (b.primary[1] - a.primary[1]) * t,
+      a.primary[2] + (b.primary[2] - a.primary[2]) * t,
+    ],
+    secondary: [
+      a.secondary[0] + (b.secondary[0] - a.secondary[0]) * t,
+      a.secondary[1] + (b.secondary[1] - a.secondary[1]) * t,
+      a.secondary[2] + (b.secondary[2] - a.secondary[2]) * t,
+    ],
+  }
+}
