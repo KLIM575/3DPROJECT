@@ -14,7 +14,6 @@ import * as THREE from 'three'
 import { BLOOM_CONFIG, QualityLevel } from '@/lib/constants'
 import {
   getNarrativePhaseIndex,
-  getNarrativePhaseLocalT,
   getVesselEmeraldHighlight,
 } from '@/lib/narrative'
 
@@ -25,41 +24,35 @@ interface BloomEffectProps {
 
 function phaseBloomMultiplier(scrollProgress: number): number {
   const phase = getNarrativePhaseIndex(scrollProgress)
-  if (phase === 0) return 1.05
-  if (phase === 1 || phase === 2) return 0.72
-  if (phase === 3) return 0.95
-  if (phase === 4) return 1.08
-  if (phase === 5) return 1.02
-  if (phase === 6 || phase === 7) return 0.88
-  return 0.92
+  if (phase === 0) return 1.02
+  if (phase === 1) return 0.82
+  if (phase === 2) return 0.94
+  if (phase === 3) return 1.04
+  return 1.08
 }
 
 function dofBokehForPhase(scrollProgress: number): number {
   const phase = getNarrativePhaseIndex(scrollProgress)
-  if (phase === 5) return 2.6
-  if (phase === 4) return 2.1
-  if (phase === 3) return 1.65
-  if (phase === 1 || phase === 2) return 1.1
-  return 1.55
+  if (phase === 4) return 2.35
+  if (phase === 3) return 1.95
+  if (phase === 2) return 1.72
+  if (phase === 1) return 1.12
+  return 1.38
 }
 
 function vignetteDarkness(scrollProgress: number): number {
   const phase = getNarrativePhaseIndex(scrollProgress)
-  if (phase === 5) return 1.28
-  if (phase === 4) return 1.12
-  if (phase === 1 || phase === 2) return 1.06
+  if (phase === 4) return 1.18
+  if (phase === 1) return 1.06
   return 0.98
 }
 
 function chromaticStrength(scrollProgress: number): number {
   const vessel = getVesselEmeraldHighlight(scrollProgress)
   const phase = getNarrativePhaseIndex(scrollProgress)
-  const localT = getNarrativePhaseLocalT(scrollProgress)
   let modulation = vessel * 0.52
-  if (phase === 3 || phase === 4) {
-    modulation += Math.sin(localT * Math.PI) * 0.2
-  }
-  return 0.0006 + modulation * 0.0012
+  if (phase === 2 || phase === 3) modulation += 0.14
+  return 0.0004 + modulation * 0.0011
 }
 
 export function BloomEffect({ quality, scrollProgress = 0 }: BloomEffectProps) {
@@ -80,8 +73,8 @@ export function BloomEffect({ quality, scrollProgress = 0 }: BloomEffectProps) {
       ? [
           <DepthOfField
             key="dof"
-            focusDistance={0.014}
-            focalLength={0.016}
+            focusDistance={0.013}
+            focalLength={0.017}
             bokehScale={dofBokeh}
             height={480}
           />,
@@ -108,9 +101,9 @@ export function BloomEffect({ quality, scrollProgress = 0 }: BloomEffectProps) {
     <Noise
       key="noise"
       blendFunction={BlendFunction.OVERLAY}
-      opacity={quality === 'high' ? 0.022 : 0.016}
+      opacity={quality === 'high' ? 0.022 : 0.014}
     />,
-    <Vignette key="vig" eskil={false} offset={0.2} darkness={vigD * 0.92} />,
+    <Vignette key="vig" eskil={false} offset={0.22} darkness={vigD * 0.9} />,
   ]
 
   return <EffectComposer>{chain}</EffectComposer>

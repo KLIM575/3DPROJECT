@@ -9,15 +9,13 @@ interface SceneAtmosphereProps {
   progress: number
 }
 
+/** Exponential fog — light haze, phase-keyed tint. */
 const FOG_PRESETS: Record<number, { color: number; density: number }> = {
-  0: { color: 0x0e0e10, density: 0.02 },
-  1: { color: 0x0c0c0f, density: 0.026 },
-  2: { color: 0x0b0b0e, density: 0.026 },
-  3: { color: 0x0d0e12, density: 0.018 },
-  4: { color: 0x0c0d14, density: 0.018 },
-  5: { color: 0x101018, density: 0.038 },
-  6: { color: 0x0f0f12, density: 0.024 },
-  7: { color: 0x0e0e11, density: 0.022 },
+  0: { color: 0x080a0c, density: 0.0078 },
+  1: { color: 0x070907, density: 0.0085 },
+  2: { color: 0x090b14, density: 0.0068 },
+  3: { color: 0x0b0916, density: 0.0062 },
+  4: { color: 0x0e1018, density: 0.0092 },
 }
 
 export function SceneAtmosphere({ progress }: SceneAtmosphereProps) {
@@ -29,7 +27,7 @@ export function SceneAtmosphere({ progress }: SceneAtmosphereProps) {
   progressRef.current = progress
 
   useEffect(() => {
-    fogRef.current = new THREE.FogExp2(0x0c0c0e, 0.02)
+    fogRef.current = new THREE.FogExp2(0x08080c, 0.0075)
     scene.fog = fogRef.current
     return () => {
       scene.fog = null
@@ -42,7 +40,7 @@ export function SceneAtmosphere({ progress }: SceneAtmosphereProps) {
     if (!fogRef.current) return
     const phase = getNarrativePhaseIndex(p)
     const t = getNarrativePhaseLocalT(p)
-    const nextPhase = Math.min(phase + 1, 7)
+    const nextPhase = Math.min(phase + 1, 4)
     const cfgA = FOG_PRESETS[phase] ?? FOG_PRESETS[0]
     const cfgB = FOG_PRESETS[nextPhase] ?? cfgA
     colorA.current.setHex(cfgA.color)

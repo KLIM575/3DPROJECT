@@ -29,7 +29,7 @@ export function MainCanvas({ scrollProgress, quality }: MainCanvasProps) {
   return (
     <Canvas
       dpr={DPR[quality]}
-      camera={{ fov: 60, position: [0, 0.5, 15], near: 0.1, far: 1000 }}
+      camera={{ fov: 56, position: [0, 3.2, 22.5], near: 0.06, far: 2600 }}
       gl={{
         antialias: quality !== 'low',
         alpha: false,

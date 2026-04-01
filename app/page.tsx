@@ -41,7 +41,7 @@ function PortfolioContent() {
         className="fixed inset-0 z-[2] pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 72% 58% at 50% 42%, transparent 36%, rgba(12,12,14,0.38) 64%, rgba(8,8,10,0.9) 100%)',
+            'radial-gradient(ellipse 74% 60% at 50% 40%, transparent 32%, rgba(6,8,10,0.42) 62%, rgba(2,3,5,0.92) 100%)',
         }}
       />
 

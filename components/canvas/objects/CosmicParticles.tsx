@@ -3,7 +3,7 @@
 import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { QualityLevel, PARTICLE_COUNTS, COLOR_STAGES } from '@/lib/constants'
+import { QualityLevel, PARTICLE_COUNTS, COLOR_STAGES, MORPH_SEGMENT_COUNT } from '@/lib/constants'
 import { interpolateColorStages } from '@/lib/animations'
 import {
   getVesselEffectStrength,
@@ -21,224 +21,242 @@ function rand(seed: number): number {
   return x - Math.floor(x)
 }
 
-/** Must match PARTICLE_KEY_COUNT - 1 in lib/constants (8 keys → 7 segments) */
-const MORPH_SEGMENTS = 7
+/** ~80% texture (small), ~20% accents — power-law via uniform threshold. */
+function powerLawSize(i: number): number {
+  const u = rand(i * 19.413)
+  if (u < 0.8) {
+    const s = Math.pow(rand(i * 21.7), 2.8)
+    return 0.28 + s * 1.15
+  }
+  const s = Math.pow(rand(i * 22.3), 0.55)
+  return 1.85 + s * 5.2
+}
 
-/** Jittered integer lattice — “digital seed” */
-function latticeMist(i: number, count: number): [number, number, number] {
-  const cells = Math.max(14, Math.min(28, Math.round(Math.cbrt(count * 1.15))))
-  const ix = i % cells
-  const iy = Math.floor(i / cells) % cells
-  const iz = Math.floor(i / (cells * cells)) % cells
-  const cell = 1.22
-  const ox = (ix - cells * 0.5 + 0.5) * cell
-  const oy = (iy - cells * 0.5 + 0.5) * cell * 0.42
-  const oz = (iz - cells * 0.5 + 0.5) * cell
+/** Rare anchors — drive bloom threshold. */
+function isAnchorParticle(i: number): number {
+  return rand(i * 3.777) > 0.978 ? 1.0 : 0.0
+}
+
+const MORPH_SEGMENTS = MORPH_SEGMENT_COUNT
+
+/** 0: dense green nebula — soft volume */
+function formationCloud(i: number, pulse: number): [number, number, number] {
+  const u = rand(i * 2.1)
+  const v = rand(i * 2.2)
+  const w = rand(i * 2.3)
+  const theta = u * Math.PI * 2
+  const phi = Math.acos(2 * v - 1)
+  const r = Math.pow(w, 0.34 + pulse * 0.1) * (10.5 - pulse * 2.2)
+  const x = Math.sin(phi) * Math.cos(theta) * r
+  const y = Math.cos(phi) * r * 0.52 + (rand(i * 2.4) - 0.5) * 1.35
+  const z = Math.sin(phi) * Math.sin(theta) * r
   return [
-    ox + (rand(i * 13.4) - 0.5) * 0.62,
-    oy + (rand(i * 15.1) - 0.5) * 0.62,
-    oz + (rand(i * 17.3) - 0.5) * 0.62,
+    x + (rand(i * 2.5) - 0.5) * 1.1,
+    y,
+    z + (rand(i * 2.6) - 0.5) * 1.1,
   ]
 }
 
-/** Vertical light-columns (forest as beams, not organic blobs) */
-function columnForest(i: number, count: number, spread: number): [number, number, number] {
-  const n = Math.max(36, Math.min(120, Math.floor(count / 65)))
-  const col = i % n
-  const ang = col * 2.618034 + rand(col * 3.1) * 0.4
-  const r = 0.85 + rand(i * 19.7) * 9.5
-  const x = Math.cos(ang) * r * spread
-  const z = Math.sin(ang) * r * spread
-  const h = 0.15 + rand(i * 21.3) * 4.8
-  const along = rand(i * 22.9)
-  const y = along * h - 0.35
-  const wobble = (rand(i * 24.1) - 0.5) * 0.06
-  return [x + wobble, y, z + wobble]
-}
-
-/** Terraced planes + distant ridge markers */
-function terraceDepth(i: number, count: number): [number, number, number] {
-  const layer = Math.floor(rand(i * 31.7) * 5)
-  const lx = (rand(i * 33.2) - 0.5) * 16
-  const lz = (rand(i * 35.8) - 0.5) * 16
-  const y = -0.55 + layer * 0.55 + (rand(i * 37.1) - 0.5) * 0.22
-  if (rand(i * 39.4) > 0.78) {
-    const hx = (rand(i * 41.0) - 0.5) * 22
-    const hz = -6.2 - rand(i * 42.2) * 4.5
-    const hy = -0.2 + Math.abs(Math.sin(hx * 0.08)) * 2.4
-    const w = 0.35 + rand(i * 43.5) * 0.25
-    return [mix(lx, hx, w), mix(y, hy, w * 0.85), mix(lz, hz, w)]
+/** 1: ancient forest — trunks, canopy, ridge, lianas, shadow silhouette */
+function formationForest(i: number, count: number): [number, number, number] {
+  const role = rand(i * 31.7)
+  if (role < 0.028) {
+    const u = rand(i * 50.1)
+    const v = rand(i * 50.2)
+    const sx = (u - 0.5) * 1.1
+    const sy = v * 2.6 - 0.15
+    const sz = -0.6 - Math.abs(u - 0.5) * 0.5
+    return [sx * 2.8, sy * 0.85 - 0.35, sz * 3.2 - 2.2]
   }
-  return [lx, y, lz]
+  if (role < 0.1) {
+    const lx = (rand(i * 41) - 0.5) * 24
+    const lz = -6.2 - rand(i * 41.5) * 5.5
+    const h = 0.35 + Math.abs(Math.sin(lx * 0.085)) * 3.1
+    return [lx * 0.9, h + (rand(i * 41.7) - 0.5) * 0.4, lz * 0.9]
+  }
+  if (role < 0.2) {
+    const trunk = Math.floor(rand(i * 42.1) * 52)
+    const ang = trunk * 0.618 + rand(trunk * 3.1) * 0.55
+    const rr = 2.4 + rand(i * 42.3) * 8.2
+    const x = Math.cos(ang) * rr
+    const z = Math.sin(ang) * rr
+    const helix = i * 0.065 + rand(i * 42.5) * 6.28
+    const y = -0.35 + rand(i * 42.7) * 3.5 + Math.sin(helix) * 0.42
+    const ox = Math.cos(helix * 1.65) * 0.32
+    const oz = Math.sin(helix * 1.65) * 0.32
+    return [x + ox, y, z + oz]
+  }
+  const n = Math.max(40, Math.min(150, Math.floor(count / 75)))
+  const col = i % n
+  const ang = col * 2.39996 + rand(col * 5.2) * 0.38
+  const rad = 0.65 + rand(i * 43.1) * 9.2
+  const x = Math.cos(ang) * rad
+  const z = Math.sin(ang) * rad
+  const h = 0.15 + rand(i * 43.3) * 4.9
+  const along = rand(i * 43.5)
+  const y = along * h - 0.55
+  return [x + (rand(i * 43.7) - 0.5) * 0.09, y, z + (rand(i * 43.9) - 0.5) * 0.09]
 }
 
-/** Sharp radial shells — velocity-like strata */
-function shockShells(i: number): [number, number, number] {
-  const shell = Math.pow(rand(i * 51.2), 0.55)
-  const R = 1.4 + shell * 38
-  const theta = rand(i * 53.1) * Math.PI * 2
-  const phi = Math.acos(2 * rand(i * 55.4) - 1)
-  const band = Math.floor(shell * 7)
-  const ripple = Math.sin(band * 1.7 + i * 0.01) * 0.35
+/** 2: cosmic burst — shells, debris, nebula */
+function formationUniverse(i: number): [number, number, number] {
+  const u = rand(i * 51.1)
+  if (u < 0.09) {
+    const shell = Math.floor(rand(i * 51.3) * 5)
+    const R = 4.2 + shell * 3.8 + rand(i * 51.5) * 0.55
+    const theta = rand(i * 51.7) * Math.PI * 2
+    const phi = Math.acos(2 * rand(i * 51.9) - 1)
+    return [
+      Math.sin(phi) * Math.cos(theta) * R,
+      Math.cos(phi) * R * 0.42,
+      Math.sin(phi) * Math.sin(theta) * R,
+    ]
+  }
+  if (u < 0.15) {
+    const pj = Math.floor(rand(i * 52.1) * 6)
+    const ox = Math.cos(pj * 1.047) * 5.5
+    const oz = Math.sin(pj * 1.047) * 5.5
+    const pr = 0.3 + rand(i * 52.3) * 1.05
+    const theta = rand(i * 52.5) * Math.PI * 2
+    const phi = Math.acos(2 * rand(i * 52.7) - 1)
+    return [
+      ox + Math.sin(phi) * Math.cos(theta) * pr,
+      Math.cos(phi) * pr * 0.55,
+      oz + Math.sin(phi) * Math.sin(theta) * pr,
+    ]
+  }
+  const band = Math.pow(rand(i * 53.1), 0.48)
+  const R = 1.8 + band * 46
+  const theta = rand(i * 53.3) * Math.PI * 2
+  const phi = Math.acos(2 * rand(i * 53.5) - 1)
+  const ripple = Math.sin(Math.floor(band * 11) * 1.35 + i * 0.007) * 0.62
   const rr = R + ripple
   return [
     Math.sin(phi) * Math.cos(theta) * rr,
-    Math.cos(phi) * rr * 0.78 + (rand(i * 57.2) - 0.5) * 2.8,
+    Math.cos(phi) * rr * 0.88 + (rand(i * 53.7) - 0.5) * 2.6,
     Math.sin(phi) * Math.sin(theta) * rr,
   ]
 }
 
-/** Thick toroidal ribbon — one coherent orbit */
-function torusRibbon(i: number, count: number): [number, number, number] {
-  const major = 7.2 + rand(i * 61.3) * 0.8
-  const minor = 0.55 + rand(i * 63.1) * 2.1
-  const u = rand(i * 65.7) * Math.PI * 2
-  const v = rand(i * 67.2) * Math.PI * 2
-  const cx = Math.cos(u) * major
-  const cz = Math.sin(u) * major
-  const cy = Math.sin(v) * minor * 0.95 + (rand(i * 69.4) - 0.5) * 0.65
-  const arm = (i % 6) * 1.0472
-  const lift = Math.sin(arm + u * 0.5) * 0.85
-  return [cx + Math.cos(v + arm) * 0.35, cy + lift, cz + Math.sin(v + arm) * 0.35]
+/** 3: spiral galaxy — bulge + arms */
+function formationGalaxy(i: number, count: number): [number, number, number] {
+  const arms = 4
+  const arm = i % arms
+  const t = Math.pow(rand(i * 61.1), 0.64)
+  const turns = t * Math.PI * 12 + arm * 1.5708
+  const r = 0.28 + t * 13.5
+  const spiral = turns + r * 0.58
+  const jitter = (rand(i * 61.3) - 0.5) * (0.24 - t * 0.09)
+  const x = Math.cos(spiral) * r + Math.cos(spiral * 2.05) * jitter
+  const z = Math.sin(spiral) * r + Math.sin(spiral * 2.05) * jitter
+  let y = (rand(i * 61.5) - 0.5) * (0.55 - t * 0.04)
+  if (rand(i * 61.7) < 0.075) {
+    const br = rand(i * 61.9) * 1.45
+    const bth = rand(i * 62.1) * Math.PI * 2
+    return [Math.cos(bth) * br * 0.38, (rand(i * 62.3) - 0.5) * 0.48, Math.sin(bth) * br * 0.38]
+  }
+  return [x, y, z]
 }
 
-/** Logarithmic spiral arms — vortex read, not flat Milky disk */
-function spiralVortex(i: number, count: number): [number, number, number] {
-  const arms = 3
-  const a = i % arms
-  const t = Math.pow(rand(i * 71.5), 0.72)
-  const angle = t * Math.PI * 14 + a * 2.0944
-  const r = 0.4 + t * 11.5
-  const h = (rand(i * 73.8) - 0.5) * (0.55 - t * 0.12)
-  return [Math.cos(angle) * r, h, Math.sin(angle) * r]
+/** 4: metal-glass vessel — cage, wires, confined interior */
+function formationVessel(i: number, escapeBias: number): [number, number, number] {
+  const e = escapeBias
+  const hx = 1.42 + e * 0.2
+  const hy = 1.02 + e * 0.16
+  const hz = 1.42 + e * 0.2
+  const u = rand(i * 71.1)
+  if (u < 0.14) {
+    const edge = Math.floor(rand(i * 72.05) * 12)
+    const t = (edge / 12) * Math.PI * 2
+    const ringR = hx * 0.98
+    const yl = (rand(i * 72.08) - 0.5) * hy * 1.95
+    return [Math.cos(t) * ringR, yl, Math.sin(t) * ringR * 0.96]
+  }
+  if (u < 0.22) {
+    const w = Math.floor(rand(i * 71.25) * 4)
+    const s = (rand(i * 71.27) - 0.5) * 2
+    const t = (rand(i * 71.29) - 0.5) * 2
+    if (w === 0) return [hx * 0.98, s * hy, t * hz]
+    if (w === 1) return [-hx * 0.98, s * hy, t * hz]
+    if (w === 2) return [s * hx, hy * 0.98, t * hz]
+    return [s * hx, t * hy, hz * 0.98]
+  }
+  if (u < 0.32) {
+    const face = Math.floor(rand(i * 71.3) * 6)
+    const a = (rand(i * 71.5) - 0.5) * 2
+    const b = (rand(i * 71.7) - 0.5) * 2
+    if (face === 0) return [hx, a * hy, b * hz]
+    if (face === 1) return [-hx, a * hy, b * hz]
+    if (face === 2) return [a * hx, hy, b * hz]
+    if (face === 3) return [a * hx, -hy, b * hz]
+    if (face === 4) return [a * hx, b * hy, hz]
+    return [a * hx, b * hy, -hz]
+  }
+  const rx = (rand(i * 72.5) - 0.5) * hx * 2
+  const ry = (rand(i * 72.7) - 0.5) * hy * 2
+  const rz = (rand(i * 72.9) - 0.5) * hz * 2
+  const ax = Math.abs(rx) / hx
+  const ay = Math.abs(ry) / hy
+  const az = Math.abs(rz) / hz
+  const m = Math.max(ax, ay, az)
+  if (m > 0.9) {
+    const s = 0.9 / m
+    return [rx * s, ry * s, rz * s]
+  }
+  const n = new THREE.Vector3(rx, ry, rz).normalize()
+  const push = e * (0.12 + rand(i * 73.1) * 0.52)
+  return [rx + n.x * push, ry + n.y * push, rz + n.z * push]
 }
 
-/** Mass biased to center + edge suction on box cage */
-function cagedMass(i: number): [number, number, number] {
-  const u = rand(i * 81.2)
-  const v = rand(i * 82.4)
-  const y = -0.72 + Math.pow(u, 0.4) * 1.5
-  const tt = (y + 0.72) / 1.5
-  const maxR = 1.02 * Math.pow(Math.max(0.001, 1.0 - tt), 1.05)
-  const ang = v * Math.PI * 2
-  const radial = maxR * Math.pow(rand(i * 84.1), 0.5)
-  const tx = Math.cos(ang) * radial
-  const tz = Math.sin(ang) * radial
-  const bx = (rand(i * 86.2) - 0.5) * 2.75
-  const by = (rand(i * 87.3) - 0.5) * 1.85 - 0.06
-  const bz = (rand(i * 88.4) - 0.5) * 2.75
-  const edge = rand(i * 89.5)
-  const w = edge > 0.82 ? 0.22 + rand(i * 90.6) * 0.35 : 0
-  return [mix(tx, bx, w), mix(y * 0.9, by, w), mix(tz, bz, w)]
-}
-
-/** Fibonacci sphere — calm ordered return */
-function fibonacciGarden(i: number, count: number, seed: number): [number, number, number] {
-  const n = Math.max(2, count)
-  const idx = (i + seed * 997) % n
+/** 5: closing garden — ordered organic shell */
+function formationGarden(i: number, count: number): [number, number, number] {
+  const n = Math.max(2, count - 1)
   const golden = Math.PI * (3 - Math.sqrt(5))
-  const y = 1 - (idx / (n - 1)) * 2
-  const r = Math.sqrt(Math.max(0, 1 - y * y))
-  const theta = golden * idx
-  const rad = 2.2 + rand(i * 91.7) * 8.4
+  const yy = 1 - (i / n) * 2
+  const rr = Math.sqrt(Math.max(0, 1 - yy * yy))
+  const theta = golden * i
+  const rad = 2.2 + rand(i * 81.1) * 7.8
   const s = rad * 0.36
-  return [Math.cos(theta) * r * s, y * rad * 0.5 - 0.18, Math.sin(theta) * r * s]
+  const warp = (rand(i * 81.3) - 0.5) * 0.65
+  return [
+    Math.cos(theta) * rr * s + warp * 0.3,
+    yy * rad * 0.5 - 0.08 + warp * 0.2,
+    Math.sin(theta) * rr * s + warp * 0.3,
+  ]
 }
 
 function generateFormations(count: number) {
-  const keys = 8
-  const positions: Float32Array[] = []
-  for (let k = 0; k < keys; k++) positions.push(new Float32Array(count * 3))
-
+  const pos0 = new Float32Array(count * 3)
+  const pos1 = new Float32Array(count * 3)
+  const pos2 = new Float32Array(count * 3)
+  const pos3 = new Float32Array(count * 3)
+  const pos4 = new Float32Array(count * 3)
+  const pos5 = new Float32Array(count * 3)
   const randoms = new Float32Array(count)
   const sizes = new Float32Array(count)
+  const anchors = new Float32Array(count)
 
   for (let i = 0; i < count; i++) {
     const i3 = i * 3
     randoms[i] = rand(i * 7.31)
-    sizes[i] = 0.45 + rand(i * 13.17) * 2.4
+    sizes[i] = powerLawSize(i)
+    anchors[i] = isAnchorParticle(i)
 
-    // 0: digital lattice mist
-    {
-      const [x, y, z] = latticeMist(i, count)
-      positions[0][i3] = x
-      positions[0][i3 + 1] = y
-      positions[0][i3 + 2] = z
+    const set = (arr: Float32Array, p: [number, number, number]) => {
+      arr[i3] = p[0]
+      arr[i3 + 1] = p[1]
+      arr[i3 + 2] = p[2]
     }
 
-    // 1: vertical columns
-    {
-      const [x, y, z] = columnForest(i, count, 1)
-      positions[1][i3] = x
-      positions[1][i3 + 1] = y
-      positions[1][i3 + 2] = z
-    }
-
-    // 2: terraces + ridge silhouettes
-    {
-      const [x, y, z] = terraceDepth(i, count)
-      positions[2][i3] = x * 1.06
-      positions[2][i3 + 1] = y
-      positions[2][i3 + 2] = z * 1.06
-    }
-
-    // 3: shock shells / radial burst
-    {
-      const [x, y, z] = shockShells(i)
-      positions[3][i3] = x
-      positions[3][i3 + 1] = y
-      positions[3][i3 + 2] = z
-    }
-
-    // 4: single torus ribbon
-    {
-      const [x, y, z] = torusRibbon(i, count)
-      positions[4][i3] = x
-      positions[4][i3 + 1] = y
-      positions[4][i3 + 2] = z
-    }
-
-    // 5: logarithmic spiral vortex
-    {
-      const [x, y, z] = spiralVortex(i, count)
-      positions[5][i3] = x
-      positions[5][i3 + 1] = y
-      positions[5][i3 + 2] = z
-    }
-
-    // 6: caged mass
-    {
-      const [x, y, z] = cagedMass(i)
-      positions[6][i3] = x
-      positions[6][i3 + 1] = y
-      positions[6][i3 + 2] = z
-    }
-
-    // 7: fibonacci / ordered garden
-    {
-      const [x, y, z] = fibonacciGarden(i, count, 41)
-      positions[7][i3] = x * 0.94
-      positions[7][i3 + 1] = y
-      positions[7][i3 + 2] = z * 0.94
-    }
+    set(pos0, formationCloud(i, 0))
+    set(pos1, formationForest(i, count))
+    set(pos2, formationUniverse(i))
+    set(pos3, formationGalaxy(i, count))
+    set(pos4, formationVessel(i, 1))
+    set(pos5, formationGarden(i, count))
   }
 
-  return {
-    pos0: positions[0],
-    pos1: positions[1],
-    pos2: positions[2],
-    pos3: positions[3],
-    pos4: positions[4],
-    pos5: positions[5],
-    pos6: positions[6],
-    pos7: positions[7],
-    randoms,
-    sizes,
-  }
-}
-
-function mix(a: number, b: number, t: number): number {
-  return a + (b - a) * t
+  return { pos0, pos1, pos2, pos3, pos4, pos5, randoms, sizes, anchors }
 }
 
 const vertexShader = `
@@ -248,20 +266,21 @@ const vertexShader = `
   attribute vec3 aPos3;
   attribute vec3 aPos4;
   attribute vec3 aPos5;
-  attribute vec3 aPos6;
-  attribute vec3 aPos7;
   attribute float aRandom;
   attribute float aSize;
+  attribute float aAnchor;
 
   uniform float uProgress;
   uniform float uTime;
   uniform float uVesselStrength;
   uniform vec3 uColor1;
   uniform vec3 uColor2;
-  uniform float uEmeraldBoost;
+  uniform float uMetalBoost;
 
   varying float vAlpha;
   varying vec3 vColor;
+  varying float vAnchor;
+  varying float vSizeNorm;
 
   void main() {
     float m = clamp(uProgress, 0.0, 0.99999) * ${MORPH_SEGMENTS}.0;
@@ -275,91 +294,89 @@ const vertexShader = `
     else if (seg < 1.5) { posA = aPos1; posB = aPos2; }
     else if (seg < 2.5) { posA = aPos2; posB = aPos3; }
     else if (seg < 3.5) { posA = aPos3; posB = aPos4; }
-    else if (seg < 4.5) { posA = aPos4; posB = aPos5; }
-    else if (seg < 5.5) { posA = aPos5; posB = aPos6; }
-    else { posA = aPos6; posB = aPos7; }
+    else { posA = aPos4; posB = aPos5; }
 
     vec3 pos = mix(posA, posB, t);
 
-    float segN = floor(clamp(uProgress, 0.0, 0.99999) * 7.0);
-    float cosmicBoost = smoothstep(2.0, 3.5, segN) * (1.0 - smoothstep(4.5, 5.5, segN));
+    float segF = clamp(uProgress, 0.0, 0.99999) * ${MORPH_SEGMENTS}.0;
+    float segN = floor(segF);
 
-    float morphWave = sin(t * 3.14159);
-    float swirlAmp = 0.52 * morphWave * (1.0 + cosmicBoost * 0.55);
-    float phase = aRandom * 6.28318;
-    float rXZ = length(pos.xz) + 0.001;
-    float ang = atan(pos.z, pos.x);
-    float flow = uTime * (0.28 + segN * 0.055);
-    pos.x += cos(ang + flow + phase * 0.35) * swirlAmp * 0.48;
-    pos.z += sin(ang + flow * 0.92 + phase * 0.28) * swirlAmp * 0.48;
-    pos.y += sin(flow * 1.1 + rXZ * 0.55 + phase) * swirlAmp * 0.36;
-    float latticePulse = smoothstep(0.0, 0.6, 1.0 - segN) * 0.14;
-    vec3 pulse3 = vec3(
-      sin(pos.x * 2.3 + uTime * 0.9 + phase),
-      sin(pos.y * 2.2 + uTime * 0.85 + phase * 1.1),
-      sin(pos.z * 2.4 + uTime * 0.95 + phase * 0.9)
-    );
-    pos += pulse3 * latticePulse;
+    float breathe = sin(uTime * 0.52 + aRandom * 6.28318) * 0.055;
+    breathe *= 1.0 - smoothstep(3.0, 5.0, segN) * 0.55;
+    pos.y += breathe;
 
     float esc = uVesselStrength;
     if (esc > 0.01) {
       vec3 n = normalize(pos + vec3(0.0001));
-      float pulse = sin(uTime * 6.0 + phase * 3.0) * 0.5 + 0.5;
-      pos += n * esc * pulse * 0.45;
-      pos.x += sin(uTime * 9.0 + aRandom * 40.0) * esc * 0.12;
-      pos.y += cos(uTime * 8.0 + aRandom * 35.0) * esc * 0.12;
+      float pulse = sin(uTime * 6.2 + aRandom * 6.28318) * 0.5 + 0.5;
+      pos += n * esc * pulse * 0.42;
     }
 
-    float drift = 0.08 + smoothstep(3.0, 5.0, segN) * 0.05;
-    pos.x += sin(uTime * 0.31 + aRandom * 50.0) * drift;
-    pos.y += cos(uTime * 0.26 + aRandom * 40.0) * drift * 1.1;
-    pos.z += sin(uTime * 0.21 + aRandom * 30.0) * drift * 0.75;
+    float turb = 0.038 + smoothstep(1.0, 4.0, segN) * 0.045;
+    pos.x += sin(uTime * 0.26 + aRandom * 50.0) * turb;
+    pos.y += cos(uTime * 0.21 + aRandom * 40.0) * turb * 0.88;
+    pos.z += sin(uTime * 0.18 + aRandom * 35.0) * turb * 0.72;
 
-    float phasePointScale = 1.0;
-    if (segN < 0.5) phasePointScale = 1.22;
-    else if (segN < 2.5) phasePointScale = 0.94;
-    else if (segN < 3.5) phasePointScale = 1.38;
-    else if (segN < 4.5) phasePointScale = 1.1;
-    else if (segN < 5.5) phasePointScale = 1.18;
-    else phasePointScale = 0.82;
+    float phaseScale = 1.0;
+    if (segN < 0.5) phaseScale = 1.14;
+    else if (segN < 2.5) phaseScale = 0.94;
+    else if (segN < 3.5) phaseScale = 1.2;
+    else if (segN < 4.5) phaseScale = 1.06;
+    else phaseScale = 0.92;
 
-    phasePointScale *= 1.0 + uEmeraldBoost * 0.28;
+    float anchor = aAnchor;
+    float anchorScale = 1.0 + anchor * (1.95 + uMetalBoost * 0.5);
+    float sizePulse = 1.0 + sin(uTime * 1.15 + aRandom * 12.0) * 0.06 * (1.0 - anchor * 0.35);
+    phaseScale *= anchorScale * sizePulse;
 
     vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
-    float size = aSize * phasePointScale * (200.0 / -mvPos.z);
-    gl_PointSize = clamp(size, 0.5, 18.0);
+    float baseSize = aSize * phaseScale * (210.0 / -mvPos.z);
+    gl_PointSize = clamp(baseSize, 0.42, 24.0);
     gl_Position = projectionMatrix * mvPos;
 
     float dist = -mvPos.z;
-    vAlpha = clamp(1.0 - dist / 42.0, 0.03, 1.0);
-    vAlpha *= 1.0 + uEmeraldBoost * 0.22;
+    vAlpha = clamp(1.0 - dist / 52.0, 0.035, 1.0);
     vColor = mix(uColor1, uColor2, aRandom);
-    vColor = mix(vColor, vec3(0.82, 1.0, 0.92), uEmeraldBoost * 0.38);
+    vAnchor = anchor;
+    vSizeNorm = clamp(aSize / 6.0, 0.08, 1.0);
   }
 `
 
 const fragmentShader = `
   varying float vAlpha;
   varying vec3 vColor;
+  varying float vAnchor;
+  varying float vSizeNorm;
+
   uniform float uOpacity;
-  uniform float uEmeraldBoost;
+  uniform float uMetalBoost;
 
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
-    float d = length(uv);
-    float soft = 0.18 + uEmeraldBoost * 0.05;
-    float edge = 0.44 + uEmeraldBoost * 0.07;
-    float alpha = (1.0 - smoothstep(soft, edge, d)) * vAlpha * uOpacity;
-    float glow = 1.0 - smoothstep(0.0, 0.32 + uEmeraldBoost * 0.1, d);
-    vec3 hot = vec3(0.95, 1.0, 0.98);
-    vec3 col = mix(vColor, hot, glow * (0.28 + uEmeraldBoost * 0.42));
+    float r = length(uv);
+    float a = atan(uv.y, uv.x);
+
+    float spikes = pow(abs(cos(a * 3.0)), 10.0) * (1.0 - smoothstep(0.08, 0.38, r));
+    float cross = (1.0 - smoothstep(0.0, 0.035, abs(uv.x))) * (1.0 - smoothstep(0.22, 0.4, abs(uv.y)));
+    cross += (1.0 - smoothstep(0.0, 0.035, abs(uv.y))) * (1.0 - smoothstep(0.22, 0.4, abs(uv.x)));
+    cross *= 0.55;
+
+    float edge0 = 0.26 - vAnchor * 0.05;
+    float edge1 = 0.36 - vAnchor * 0.04;
+    float disk = 1.0 - smoothstep(edge0, edge1, r);
+    float core = 1.0 - smoothstep(0.0, 0.14 + vAnchor * 0.1 + vSizeNorm * 0.04, r);
+
+    float starBody = clamp(disk + spikes * 0.85 + cross, 0.0, 1.0);
+    float alpha = starBody * vAlpha * uOpacity;
+    float hot = core * (0.12 + vAnchor * 0.62 + uMetalBoost * 0.22);
+    vec3 hotCol = vec3(0.94, 0.97, 1.0);
+    vec3 col = mix(vColor, hotCol, hot);
     gl_FragColor = vec4(col, alpha);
-    if (alpha < 0.003) discard;
+    if (alpha < 0.0035) discard;
   }
 `
 
 export function CosmicParticles({ quality, progress }: CosmicParticlesProps) {
-  const meshRef = useRef<THREE.Points>(null)
   const progressRef = useRef(progress)
   progressRef.current = progress
   const count = PARTICLE_COUNTS[quality]
@@ -374,10 +391,9 @@ export function CosmicParticles({ quality, progress }: CosmicParticlesProps) {
     geo.setAttribute('aPos3', new THREE.BufferAttribute(formations.pos3, 3))
     geo.setAttribute('aPos4', new THREE.BufferAttribute(formations.pos4, 3))
     geo.setAttribute('aPos5', new THREE.BufferAttribute(formations.pos5, 3))
-    geo.setAttribute('aPos6', new THREE.BufferAttribute(formations.pos6, 3))
-    geo.setAttribute('aPos7', new THREE.BufferAttribute(formations.pos7, 3))
     geo.setAttribute('aRandom', new THREE.BufferAttribute(formations.randoms, 1))
     geo.setAttribute('aSize', new THREE.BufferAttribute(formations.sizes, 1))
+    geo.setAttribute('aAnchor', new THREE.BufferAttribute(formations.anchors, 1))
     return geo
   }, [count, formations])
 
@@ -392,10 +408,10 @@ export function CosmicParticles({ quality, progress }: CosmicParticlesProps) {
       uProgress: { value: 0 },
       uTime: { value: 0 },
       uVesselStrength: { value: 0 },
-      uColor1: { value: new THREE.Color(0.2, 0.9, 0.45) },
-      uColor2: { value: new THREE.Color(0.06, 0.5, 0.26) },
+      uColor1: { value: new THREE.Color(0.15, 0.7, 0.36) },
+      uColor2: { value: new THREE.Color(0.05, 0.35, 0.18) },
       uOpacity: { value: 1.0 },
-      uEmeraldBoost: { value: 0 },
+      uMetalBoost: { value: 0 },
     }),
     [],
   )
@@ -406,7 +422,7 @@ export function CosmicParticles({ quality, progress }: CosmicParticlesProps) {
     uniforms.uTime.value = clock.elapsedTime
     uniforms.uProgress.value = morphP
     uniforms.uVesselStrength.value = getVesselEffectStrength(p)
-    uniforms.uEmeraldBoost.value = getVesselEmeraldHighlight(p)
+    uniforms.uMetalBoost.value = getVesselEmeraldHighlight(p)
 
     const { primary, secondary } = interpolateColorStages(morphP, COLOR_STAGES)
     uniforms.uColor1.value.setRGB(primary[0], primary[1], primary[2])
@@ -414,7 +430,7 @@ export function CosmicParticles({ quality, progress }: CosmicParticlesProps) {
   })
 
   return (
-    <points ref={meshRef} geometry={geometry} frustumCulled={false}>
+    <points geometry={geometry} frustumCulled={false}>
       <shaderMaterial
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}

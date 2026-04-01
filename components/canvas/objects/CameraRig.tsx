@@ -57,7 +57,7 @@ export function CameraRig({ progress }: CameraRigProps) {
 
     const phase = getNarrativePhaseIndex(p)
     const wobbleScale =
-      phase === 5 ? 0.014 : phase === 4 ? 0.028 : phase === 3 ? 0.04 : 0.055
+      phase === 4 ? 0.014 : phase === 3 ? 0.026 : phase === 2 ? 0.036 : 0.05
     const wobbleX = Math.sin(time * 0.11) * wobbleScale
     const wobbleY = Math.cos(time * 0.09) * wobbleScale * 0.65
 
@@ -76,7 +76,7 @@ export function CameraRig({ progress }: CameraRigProps) {
       targetLookAt.current.addScaledVector(vRight.current, Math.sin(orbitA * 0.85) * orbitMag * 0.06)
     }
 
-    const lerpSpeed = phase === 5 ? 0.022 : 0.03
+    const lerpSpeed = phase === 4 ? 0.021 : 0.027
     currentPos.current.lerp(targetPos.current, lerpSpeed)
     currentLookAt.current.lerp(targetLookAt.current, lerpSpeed)
 
