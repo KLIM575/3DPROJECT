@@ -5,7 +5,8 @@ import { Canvas } from '@react-three/fiber'
 import { AdaptiveDpr, AdaptiveEvents, Preload } from '@react-three/drei'
 import { UnifiedScene } from './scenes/UnifiedScene'
 import { BloomEffect } from './effects/BloomEffect'
-import { DPR, QualityLevel } from '@/lib/constants'
+import { COLORS, DPR, QualityLevel } from '@/lib/constants'
+import { onCanvasCreated } from '@/lib/threeRendererSetup'
 
 interface MainCanvasProps {
   scrollProgress: number
@@ -13,13 +14,10 @@ interface MainCanvasProps {
 }
 
 function SceneContent({ scrollProgress, quality }: MainCanvasProps) {
-  const frac = (scrollProgress * 4) % 1
-  const transitionProgress = Math.sin(frac * Math.PI) * 0.5
-
   return (
     <>
       <UnifiedScene scrollProgress={scrollProgress} quality={quality} />
-      <BloomEffect quality={quality} transitionProgress={transitionProgress} />
+      <BloomEffect quality={quality} scrollProgress={scrollProgress} />
       <AdaptiveDpr pixelated />
       <AdaptiveEvents />
       <Preload all />
@@ -37,8 +35,10 @@ export function MainCanvas({ scrollProgress, quality }: MainCanvasProps) {
         alpha: false,
         powerPreference: 'high-performance',
         stencil: false,
+        preserveDrawingBuffer: false,
       }}
-      style={{ background: '#050510' }}
+      onCreated={onCanvasCreated}
+      style={{ background: COLORS.canvasClear }}
       frameloop="always"
     >
       <Suspense fallback={null}>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SECTIONS, SectionId } from '@/lib/constants'
+import { SECTIONS, SectionId, SECTION_SCROLL_ANCHORS } from '@/lib/constants'
+import { useLenis } from '@/components/LenisProvider'
 
 const NAV_LABELS: Record<SectionId, string> = {
   hero:         'Home',
@@ -14,22 +15,12 @@ const NAV_LABELS: Record<SectionId, string> = {
   contact:      'Contact',
 }
 
-const NAV_SECTION_PROGRESS: Record<SectionId, number> = {
-  hero:         0.00,
-  projects:     0.15,
-  about:        0.45,
-  services:     0.62,
-  team:         0.70,
-  testimonials: 0.78,
-  contact:      0.85,
-}
-
 interface NavigationProps {
   scrollProgress: number
 }
 
 function getActiveSection(progress: number): SectionId {
-  const sections = Object.entries(NAV_SECTION_PROGRESS) as [SectionId, number][]
+  const sections = Object.entries(SECTION_SCROLL_ANCHORS) as [SectionId, number][]
   let active: SectionId = 'hero'
   for (const [id, threshold] of sections) {
     if (progress >= threshold) active = id
@@ -38,18 +29,23 @@ function getActiveSection(progress: number): SectionId {
 }
 
 export function Navigation({ scrollProgress }: NavigationProps) {
+  const lenis = useLenis()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [visible, setVisible] = useState(false)
   const activeSection = getActiveSection(scrollProgress)
-
-  useEffect(() => {
-    setVisible(scrollProgress > 0.02)
-  }, [scrollProgress])
+  const visible = scrollProgress > 0.02
 
   function scrollToSection(id: SectionId) {
-    const progress = NAV_SECTION_PROGRESS[id]
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-    window.scrollTo({ top: progress * maxScroll, behavior: 'smooth' })
+    const progress = SECTION_SCROLL_ANCHORS[id]
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight,
+    )
+    const top = progress * maxScroll
+    if (lenis) {
+      lenis.scrollTo(top)
+    } else {
+      window.scrollTo({ top, behavior: 'smooth' })
+    }
     setMenuOpen(false)
   }
 
@@ -69,7 +65,38 @@ export function Navigation({ scrollProgress }: NavigationProps) {
           <span style={{ color: 'var(--accent)' }}>.DEV</span>
         </div>
 
-        {/* Menu toggle (desktop hidden, shown via sidebar) */}
+        <div className="hidden md:flex items-center gap-4">
+          <div
+            className="flex items-center gap-0 rounded-full px-4 py-2.5 font-mono text-[10px] tracking-[0.28em] uppercase"
+            style={{
+              color: 'rgba(230,240,235,0.88)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              background: 'rgba(4,8,10,0.45)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 0 24px rgba(80,255,180,0.06)',
+            }}
+          >
+            <button
+              type="button"
+              className="cursor-pointer hover:opacity-100 opacity-80 transition-opacity"
+              onClick={() => scrollToSection('projects')}
+            >
+              Work
+            </button>
+            <span className="mx-2 opacity-35 select-none" aria-hidden>
+              —
+            </span>
+            <button
+              type="button"
+              className="cursor-pointer hover:opacity-100 opacity-80 transition-opacity"
+              onClick={() => scrollToSection('contact')}
+            >
+              Contact
+            </button>
+          </div>
+        </div>
+
+        {/* Menu toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="relative z-50 w-8 h-8 flex flex-col justify-center gap-1.5 cursor-pointer"

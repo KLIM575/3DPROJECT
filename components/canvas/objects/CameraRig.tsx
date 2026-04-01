@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CAMERA_WAYPOINTS } from '@/lib/constants'
+import { getNarrativePhaseIndex, narrativeCameraParam } from '@/lib/narrative'
 
 interface CameraRigProps {
   progress: number
@@ -30,10 +31,11 @@ export function CameraRig({ progress }: CameraRigProps) {
   useFrame(({ clock }) => {
     const time = clock.elapsedTime
     const p = progressRef.current
+    const camT = narrativeCameraParam(p)
     const wp = CAMERA_WAYPOINTS
     const maxIdx = wp.length - 1
 
-    const raw = Math.min(p, 0.999) * maxIdx
+    const raw = Math.min(Math.max(camT, 0), 1) * maxIdx
     const idx = Math.floor(raw)
     const t = raw - idx
     const st = t * t * (3 - 2 * t)
@@ -50,13 +52,16 @@ export function CameraRig({ progress }: CameraRigProps) {
       wp[idx].lookAt[2] + (wp[next].lookAt[2] - wp[idx].lookAt[2]) * st,
     )
 
-    const wobbleX = Math.sin(time * 0.15) * 0.2
-    const wobbleY = Math.cos(time * 0.12) * 0.15
+    const phase = getNarrativePhaseIndex(p)
+    const wobbleScale =
+      phase === 5 ? 0.06 : phase === 4 ? 0.1 : phase === 3 ? 0.14 : 0.22
+    const wobbleX = Math.sin(time * 0.15) * wobbleScale
+    const wobbleY = Math.cos(time * 0.12) * wobbleScale * 0.78
 
     targetPos.current.x += wobbleX
     targetPos.current.y += wobbleY
 
-    const lerpSpeed = 0.04
+    const lerpSpeed = phase === 5 ? 0.028 : 0.038
     currentPos.current.lerp(targetPos.current, lerpSpeed)
     currentLookAt.current.lerp(targetLookAt.current, lerpSpeed)
 

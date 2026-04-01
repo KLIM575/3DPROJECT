@@ -1,20 +1,23 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { NARRATIVE_PHASE_BOUNDS, SECTION_SCROLL_ANCHORS } from '@/lib/constants'
 import { ScrollIndicator } from '../ui/ScrollIndicator'
 
 interface HeroSectionProps {
   scrollProgress: number
 }
 
+const HERO_FADE_END = NARRATIVE_PHASE_BOUNDS[1]
+
 export function HeroSection({ scrollProgress }: HeroSectionProps) {
-  const visible = scrollProgress < 0.15
-  const opacity = Math.max(0, 1 - scrollProgress * 10)
+  const visible = scrollProgress < HERO_FADE_END
+  const opacity = Math.max(0, 1 - scrollProgress / HERO_FADE_END)
 
   return (
     <section
       className="relative flex items-center justify-center min-h-screen px-6 md:px-16"
-      style={{ pointerEvents: scrollProgress > 0.1 ? 'none' : 'auto' }}
+      style={{ pointerEvents: scrollProgress > HERO_FADE_END * 0.55 ? 'none' : 'auto' }}
     >
       <div className="max-w-5xl w-full" style={{ opacity }}>
         {/* Pre-title */}
@@ -26,16 +29,16 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
         >
           <div className="w-8 h-px" style={{ background: 'var(--accent)' }} />
           <span
-            className="font-mono text-xs tracking-widest uppercase"
-            style={{ color: 'var(--accent)' }}
+            className="font-mono text-[10px] md:text-xs tracking-[0.35em] uppercase"
+            style={{ color: 'rgba(200,220,210,0.75)' }}
           >
-            Creative Digital Studio
+            Immersive studio
           </span>
         </motion.div>
 
         {/* Main title */}
         <div className="overflow-hidden mb-6">
-          {['We Build', 'Impossible', 'Experiences.'].map((line, i) => (
+          {['Stories', 'in motion', 'worlds.'].map((line, i) => (
             <motion.div
               key={i}
               initial={{ y: '100%', opacity: 0 }}
@@ -43,11 +46,11 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
               transition={{ duration: 0.9, delay: 0.5 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
             >
               <h1
-                className="block text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-none"
+                className="block text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-semibold tracking-[-0.04em] leading-[0.92]"
                 style={{
                   fontFamily: 'var(--font-space-grotesk)',
-                  color: i === 2 ? 'var(--accent)' : 'var(--white)',
-                  textShadow: i === 2 ? '0 0 40px rgba(0,255,255,0.4)' : 'none',
+                  color: i === 2 ? 'var(--accent)' : 'rgba(248,250,252,0.96)',
+                  textShadow: i === 2 ? '0 0 48px rgba(93,255,196,0.25)' : 'none',
                 }}
               >
                 {line}
@@ -61,11 +64,10 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}
-          className="text-base md:text-xl max-w-lg leading-relaxed mb-12"
-          style={{ color: 'var(--text)' }}
+          className="text-sm md:text-lg max-w-md leading-relaxed mb-12 font-light"
+          style={{ color: 'rgba(180,190,200,0.85)' }}
         >
-          We blend story, art &amp; technology as an in-house team of passionate makers.
-          WebGL. Real-time 3D. Award-winning interactive work.
+          Scroll — mist becomes forest, forest opens to stars, stars collapse into form, then the garden returns.
         </motion.p>
 
         {/* CTAs */}
@@ -91,7 +93,7 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
             }}
             onClick={() => {
               const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-              window.scrollTo({ top: 0.15 * maxScroll, behavior: 'smooth' })
+              window.scrollTo({ top: SECTION_SCROLL_ANCHORS.projects * maxScroll, behavior: 'smooth' })
             }}
           >
             View Work
@@ -114,7 +116,7 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
             }}
             onClick={() => {
               const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-              window.scrollTo({ top: 0.85 * maxScroll, behavior: 'smooth' })
+              window.scrollTo({ top: SECTION_SCROLL_ANCHORS.contact * maxScroll, behavior: 'smooth' })
             }}
           >
             Get in Touch

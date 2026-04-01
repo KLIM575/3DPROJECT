@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { QualityLevel, COLOR_STAGES } from '@/lib/constants'
 import { interpolateColorStages } from '@/lib/animations'
+import { getNarrativePhaseIndex, narrativeMorphProgress } from '@/lib/narrative'
 
 interface MorphingCoreProps {
   progress: number
@@ -37,7 +38,7 @@ const coreVertexShader = `
 
   void main() {
     vNormal = normal;
-    float p = clamp(uProgress, 0.0, 0.9999) * 4.0;
+    float p = clamp(uProgress, 0.0, 0.9999) * 7.0;
     float seg = floor(p);
     float t = fract(p);
     t = t * t * (3.0 - 2.0 * t);
@@ -49,17 +50,22 @@ const coreVertexShader = `
     float d3 = pow(n3, 3.0) * 1.5 - 0.3;
     float angle4 = atan(normal.z, normal.x);
     float d4 = sin(angle4 * 5.0 + normal.y * 8.0 + uTime) * 0.3;
+    float d5 = sin(angle4 * 9.0 + normal.y * 5.0 + uTime * 0.6) * 0.42;
+    float d6 = (noise(normal * 9.0 + uTime * 0.55) - 0.5) * 0.55;
 
     float dispA, dispB;
     if (seg < 1.0) { dispA = d0; dispB = d1; }
     else if (seg < 2.0) { dispA = d1; dispB = d2; }
     else if (seg < 3.0) { dispA = d2; dispB = d3; }
-    else { dispA = d3; dispB = d4; }
+    else if (seg < 4.0) { dispA = d3; dispB = d4; }
+    else if (seg < 5.0) { dispA = d4; dispB = d5; }
+    else if (seg < 6.0) { dispA = d5; dispB = d6; }
+    else { dispA = d6; dispB = d0; }
 
     float displacement = mix(dispA, dispB, t);
     vDisplacement = displacement;
 
-    float scale = 1.0 + sin(uProgress * 3.14159) * 0.3;
+    float scale = 1.0 + sin(uProgress * 3.14159) * 0.35;
     vec3 newPos = (position + normal * displacement) * scale;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
@@ -114,19 +120,33 @@ export function MorphingCore({ progress, quality }: MorphingCoreProps) {
   useFrame(({ clock }) => {
     const time = clock.elapsedTime
     const p = progressRef.current
+    const morphP = narrativeMorphProgress(p)
+    const phase = getNarrativePhaseIndex(p)
 
     uniforms.uTime.value = time
-    uniforms.uProgress.value = p
+    uniforms.uProgress.value = morphP
 
-    const { primary } = interpolateColorStages(p, COLOR_STAGES)
+    const { primary } = interpolateColorStages(morphP, COLOR_STAGES)
     uniforms.uColor.value.setRGB(primary[0], primary[1], primary[2])
+
+    let coreOpacity = 0.82
+    if (phase === 0) coreOpacity = 0.62
+    else if (phase === 1 || phase === 2) coreOpacity = 0.12
+    else if (phase === 3) coreOpacity = 0.58
+    else if (phase === 4) coreOpacity = 0.98
+    else if (phase === 5) coreOpacity = 0.68
+    else if (phase === 6 || phase === 7) coreOpacity = 0.36
+    uniforms.uOpacity.value += (coreOpacity - uniforms.uOpacity.value) * 0.06
 
     if (groupRef.current) {
       groupRef.current.rotation.y = time * 0.08
       groupRef.current.rotation.x = Math.sin(time * 0.05) * 0.15
+      const s = 1.0 + (phase === 4 ? 0.15 : 0) + (phase === 5 ? -0.08 : 0)
+      groupRef.current.scale.setScalar(s)
     }
 
-    const ringScale = 1.0 + Math.sin(p * Math.PI) * 0.4
+    const ringScale = 1.0 + Math.sin(p * Math.PI) * 0.45
+    const ringDim = phase === 1 || phase === 2 ? 0.12 : phase === 5 ? 0.45 : 1
     ringRefs.current.forEach((ring, i) => {
       if (!ring) return
       const cfg = RING_CONFIG[i]
@@ -138,7 +158,8 @@ export function MorphingCore({ progress, quality }: MorphingCoreProps) {
     ringMatRefs.current.forEach((mat, i) => {
       if (!mat) return
       mat.color.setRGB(primary[0], primary[1], primary[2])
-      mat.opacity = RING_CONFIG[i].baseOpacity * (0.6 + Math.sin(time * 0.5 + i) * 0.4)
+      const base = RING_CONFIG[i].baseOpacity * ringDim
+      mat.opacity = base * (0.6 + Math.sin(time * 0.5 + i) * 0.4)
     })
   })
 

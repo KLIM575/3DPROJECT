@@ -1,11 +1,15 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
-import * as THREE from 'three'
+import { Suspense } from 'react'
+import { Environment } from '@react-three/drei'
+import { SceneAtmosphere } from '../SceneAtmosphere'
 import { CosmicParticles } from '../objects/CosmicParticles'
 import { MorphingCore } from '../objects/MorphingCore'
 import { CameraRig } from '../objects/CameraRig'
-import { CursorEmitter } from '../objects/CursorEmitter'
+import { ShadowWalker } from '../objects/ShadowWalker'
+import { LianaField } from '../objects/LianaField'
+import { VesselAssembly } from '../objects/VesselAssembly'
+import { NarrativeWorlds } from '../objects/NarrativeWorlds'
 import { QualityLevel } from '@/lib/constants'
 
 interface UnifiedSceneProps {
@@ -14,39 +18,25 @@ interface UnifiedSceneProps {
 }
 
 export function UnifiedScene({ scrollProgress, quality }: UnifiedSceneProps) {
-  const mouseNDC = useRef(new THREE.Vector2(-10, -10))
-  const mouseActive = useRef(false)
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mouseNDC.current.set(
-        (e.clientX / window.innerWidth) * 2 - 1,
-        -(e.clientY / window.innerHeight) * 2 + 1,
-      )
-      mouseActive.current = true
-    }
-    const onLeave = () => {
-      mouseActive.current = false
-    }
-    window.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseleave', onLeave)
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseleave', onLeave)
-    }
-  }, [])
-
   return (
     <>
+      <SceneAtmosphere progress={scrollProgress} />
+      {quality !== 'low' && (
+        <Suspense fallback={null}>
+          <Environment
+            preset="night"
+            environmentIntensity={quality === 'high' ? 0.52 : 0.36}
+            environmentRotation={[0, 0.9, 0]}
+          />
+        </Suspense>
+      )}
       <CameraRig progress={scrollProgress} />
-      <CosmicParticles
-        quality={quality}
-        progress={scrollProgress}
-        mouseNDC={mouseNDC}
-        mouseActive={mouseActive}
-      />
+      <CosmicParticles quality={quality} progress={scrollProgress} />
       <MorphingCore progress={scrollProgress} quality={quality} />
-      <CursorEmitter mouseNDC={mouseNDC} mouseActive={mouseActive} />
+      <NarrativeWorlds progress={scrollProgress} quality={quality} />
+      <VesselAssembly progress={scrollProgress} quality={quality} />
+      <LianaField progress={scrollProgress} quality={quality} />
+      <ShadowWalker progress={scrollProgress} />
     </>
   )
 }
