@@ -15,39 +15,29 @@ export function ContactForm() {
   if (sent) {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center gap-4 py-12"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-4 border border-[var(--border)] bg-[var(--bg-elevated)] px-8 py-12"
       >
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center text-2xl"
-          style={{ border: '1px solid var(--accent)', color: 'var(--accent)' }}
-        >
-          ◈
-        </div>
-        <p className="font-mono text-sm tracking-widest" style={{ color: 'var(--accent)' }}>
-          TRANSMISSION RECEIVED
-        </p>
-        <p className="text-center" style={{ color: 'var(--text)' }}>
-          We'll be in touch soon.
-        </p>
+        <p className="font-serif-display text-2xl text-[var(--white)]">Thank you</p>
+        <p className="text-sm leading-relaxed text-[var(--text)]">We will reply within a few days.</p>
       </motion.div>
     )
   }
 
   const fields = [
-    { id: 'name', label: 'Your Name', type: 'text', placeholder: 'Alex Smith' },
-    { id: 'email', label: 'Email Address', type: 'email', placeholder: 'alex@company.com' },
-    { id: 'project', label: 'Project Type', type: 'text', placeholder: 'WebGL Experience, Product Launch...' },
-  ]
+    { id: 'name', label: 'Name', type: 'text', placeholder: 'Your name' },
+    { id: 'email', label: 'Email', type: 'email', placeholder: 'you@company.com' },
+    { id: 'project', label: 'Project', type: 'text', placeholder: 'Launch, film site, product…' },
+  ] as const
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {fields.map(({ id, label, type, placeholder }) => (
-        <div key={id} className="relative">
+        <div key={id}>
           <label
             htmlFor={id}
-            className="block font-mono text-xs tracking-widest mb-2 uppercase transition-colors"
+            className="mb-2 block font-mono-ui text-[10px] uppercase tracking-[0.2em] transition-colors"
             style={{ color: focused === id ? 'var(--accent)' : 'var(--muted)' }}
           >
             {label}
@@ -59,22 +49,15 @@ export function ContactForm() {
             required
             onFocus={() => setFocused(id)}
             onBlur={() => setFocused(null)}
-            className="w-full px-4 py-3 bg-transparent font-mono text-sm outline-none transition-all duration-300"
-            style={{
-              color: 'var(--white)',
-              border: `1px solid ${focused === id ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`,
-              boxShadow: focused === id ? '0 0 15px rgba(0,255,255,0.1)' : 'none',
-              borderRadius: '2px',
-            }}
+            className="w-full border border-[var(--border)] bg-transparent px-4 py-3 text-sm text-[var(--white)] outline-none transition-colors focus:border-[var(--accent-muted)]"
           />
         </div>
       ))}
 
-      {/* Message */}
-      <div className="relative">
+      <div>
         <label
           htmlFor="message"
-          className="block font-mono text-xs tracking-widest mb-2 uppercase transition-colors"
+          className="mb-2 block font-mono-ui text-[10px] uppercase tracking-[0.2em] transition-colors"
           style={{ color: focused === 'message' ? 'var(--accent)' : 'var(--muted)' }}
         >
           Message
@@ -82,43 +65,21 @@ export function ContactForm() {
         <textarea
           id="message"
           rows={5}
-          placeholder="Tell us about your project..."
+          placeholder="Timeline, references, constraints…"
           required
           onFocus={() => setFocused('message')}
           onBlur={() => setFocused(null)}
-          className="w-full px-4 py-3 bg-transparent font-mono text-sm outline-none transition-all duration-300 resize-none"
-          style={{
-            color: 'var(--white)',
-            border: `1px solid ${focused === 'message' ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`,
-            boxShadow: focused === 'message' ? '0 0 15px rgba(0,255,255,0.1)' : 'none',
-            borderRadius: '2px',
-          }}
+          className="w-full resize-none border border-[var(--border)] bg-transparent px-4 py-3 text-sm text-[var(--white)] outline-none transition-colors focus:border-[var(--accent-muted)]"
         />
       </div>
 
       <motion.button
         type="submit"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="relative overflow-hidden py-4 px-8 font-mono text-sm tracking-widest uppercase cursor-pointer transition-all duration-300 group"
-        style={{
-          border: '1px solid var(--accent)',
-          color: 'var(--accent)',
-          background: 'transparent',
-          borderRadius: '2px',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'var(--accent)'
-          e.currentTarget.style.color = 'var(--bg)'
-          e.currentTarget.style.boxShadow = '0 0 30px rgba(0,255,255,0.4)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'var(--accent)'
-          e.currentTarget.style.boxShadow = 'none'
-        }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="w-full border border-[var(--white)] bg-[var(--white)] py-4 font-mono-ui text-[11px] uppercase tracking-[0.22em] text-[var(--bg)] transition-opacity hover:opacity-90 md:w-auto md:px-12"
       >
-        Send Transmission
+        Send
       </motion.button>
     </form>
   )

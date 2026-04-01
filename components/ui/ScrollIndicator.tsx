@@ -17,12 +17,7 @@ export function ScrollIndicator({ visible }: ScrollIndicatorProps) {
           transition={{ duration: 1, delay: 2 }}
           className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2"
         >
-          <span
-            className="font-mono text-xs tracking-widest"
-            style={{ color: 'var(--muted)' }}
-          >
-            SCROLL
-          </span>
+          <span className="font-mono-ui text-[10px] uppercase tracking-[0.28em] text-[var(--muted)]">Scroll</span>
           <div
             className="relative w-5 h-9 rounded-full"
             style={{ border: '1px solid var(--muted)' }}

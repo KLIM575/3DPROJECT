@@ -9,7 +9,7 @@ export function configureRenderer(gl: THREE.WebGLRenderer): void {
   gl.outputColorSpace = THREE.SRGBColorSpace
   gl.toneMapping = THREE.ACESFilmicToneMapping
   gl.toneMappingExposure = 1
-  gl.setClearColor(0x020504, 1)
+  gl.setClearColor(0x0c0c0e, 1)
 }
 
 export function onCanvasCreated(state: RootState): void {

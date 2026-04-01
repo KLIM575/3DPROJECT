@@ -27,6 +27,9 @@ export function CameraRig({ progress }: CameraRigProps) {
   ))
   const targetPos = useRef(new THREE.Vector3())
   const targetLookAt = useRef(new THREE.Vector3())
+  const vForward = useRef(new THREE.Vector3())
+  const vRight = useRef(new THREE.Vector3())
+  const vUp = useRef(new THREE.Vector3(0, 1, 0))
 
   useFrame(({ clock }) => {
     const time = clock.elapsedTime
@@ -54,14 +57,26 @@ export function CameraRig({ progress }: CameraRigProps) {
 
     const phase = getNarrativePhaseIndex(p)
     const wobbleScale =
-      phase === 5 ? 0.06 : phase === 4 ? 0.1 : phase === 3 ? 0.14 : 0.22
-    const wobbleX = Math.sin(time * 0.15) * wobbleScale
-    const wobbleY = Math.cos(time * 0.12) * wobbleScale * 0.78
+      phase === 5 ? 0.014 : phase === 4 ? 0.028 : phase === 3 ? 0.04 : 0.055
+    const wobbleX = Math.sin(time * 0.11) * wobbleScale
+    const wobbleY = Math.cos(time * 0.09) * wobbleScale * 0.65
 
     targetPos.current.x += wobbleX
     targetPos.current.y += wobbleY
 
-    const lerpSpeed = phase === 5 ? 0.028 : 0.038
+    vForward.current.subVectors(targetLookAt.current, targetPos.current)
+    if (vForward.current.lengthSq() > 1e-8) {
+      vForward.current.normalize()
+      vRight.current.crossVectors(vUp.current, vForward.current).normalize()
+      const orbitA = time * 0.14 + p * 5.5
+      const orbitB = time * 0.1 + p * 3.2
+      const orbitMag = 0.42 + phase * 0.04
+      targetPos.current.addScaledVector(vRight.current, Math.sin(orbitA) * orbitMag * 0.22)
+      targetPos.current.addScaledVector(vUp.current, Math.cos(orbitB) * orbitMag * 0.14)
+      targetLookAt.current.addScaledVector(vRight.current, Math.sin(orbitA * 0.85) * orbitMag * 0.06)
+    }
+
+    const lerpSpeed = phase === 5 ? 0.022 : 0.03
     currentPos.current.lerp(targetPos.current, lerpSpeed)
     currentLookAt.current.lerp(targetLookAt.current, lerpSpeed)
 

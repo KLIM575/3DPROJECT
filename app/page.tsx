@@ -11,6 +11,7 @@ import { ServicesSection } from '@/components/sections/ServicesSection'
 import { TeamSection } from '@/components/sections/TeamSection'
 import { TestimonialsSection } from '@/components/sections/TestimonialsSection'
 import { ContactSection } from '@/components/sections/ContactSection'
+import { BabylonLabSection } from '@/components/sections/BabylonLabSection'
 import { LenisProvider } from '@/components/LenisProvider'
 import { LoadingScreen } from '@/components/ui/LoadingScreen'
 import { TOTAL_SCROLL_HEIGHT } from '@/lib/constants'
@@ -40,7 +41,7 @@ function PortfolioContent() {
         className="fixed inset-0 z-[2] pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 70% 60% at 50% 45%, transparent 32%, rgba(3,14,8,0.45) 62%, rgba(1,5,4,0.88) 100%)',
+            'radial-gradient(ellipse 72% 58% at 50% 42%, transparent 36%, rgba(12,12,14,0.38) 64%, rgba(8,8,10,0.9) 100%)',
         }}
       />
 
@@ -52,6 +53,7 @@ function PortfolioContent() {
         <HeroSection scrollProgress={progress} />
         <ProjectsSection />
         <AboutSection />
+        <BabylonLabSection quality={quality} />
         <ServicesSection />
         <TeamSection />
         <TestimonialsSection />

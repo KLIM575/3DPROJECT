@@ -1,23 +1,25 @@
 import type { Metadata } from 'next'
-import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Serif, Inter } from 'next/font/google'
 import './globals.css'
 
-const spaceGrotesk = Space_Grotesk({
+const instrumentSerif = Instrument_Serif({
+  weight: '400',
   subsets: ['latin'],
-  variable: '--font-space-grotesk',
+  variable: '--font-serif',
   display: 'swap',
 })
 
-const jetbrainsMono = JetBrains_Mono({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
+  variable: '--font-sans',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'Creative Portfolio · Digital Experiences',
-  description: 'Blending story, art & technology. Award-winning interactive experiences built with WebGL and real-time 3D.',
-  keywords: ['WebGL', '3D', 'interactive', 'creative', 'portfolio', 'immersive'],
+  title: 'Studio · Creative digital experiences',
+  description:
+    'We craft immersive interactive work at the intersection of design, technology, and story.',
+  keywords: ['WebGL', '3D', 'interactive', 'creative', 'digital', 'immersive'],
 }
 
 export default function RootLayout({
@@ -26,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
-      <body style={{ fontFamily: 'var(--font-space-grotesk), sans-serif' }}>
+    <html lang="en" className={`${instrumentSerif.variable} ${inter.variable}`}>
+      <body className="font-sans antialiased" style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}>
         <div className="noise-overlay" aria-hidden="true" />
         {children}
       </body>

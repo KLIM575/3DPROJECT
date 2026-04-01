@@ -16,42 +16,33 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
 
   return (
     <section
-      className="relative flex items-center justify-center min-h-screen px-6 md:px-16"
+      className="relative flex min-h-screen items-center justify-center px-6 md:px-16"
       style={{ pointerEvents: scrollProgress > HERO_FADE_END * 0.55 ? 'none' : 'auto' }}
     >
-      <div className="max-w-5xl w-full" style={{ opacity }}>
-        {/* Pre-title */}
+      <div className="w-full max-w-6xl" style={{ opacity }}>
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex items-center gap-3 mb-8"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.2 }}
+          className="mb-10"
         >
-          <div className="w-8 h-px" style={{ background: 'var(--accent)' }} />
-          <span
-            className="font-mono text-[10px] md:text-xs tracking-[0.35em] uppercase"
-            style={{ color: 'rgba(200,220,210,0.75)' }}
-          >
-            Immersive studio
+          <span className="font-mono-ui text-[10px] uppercase tracking-[0.32em] text-[var(--muted)]">
+            Creative digital experiences
           </span>
         </motion.div>
 
-        {/* Main title */}
-        <div className="overflow-hidden mb-6">
-          {['Stories', 'in motion', 'worlds.'].map((line, i) => (
+        <div className="mb-10 overflow-hidden">
+          {['We craft', 'worlds in', 'the browser.'].map((line, i) => (
             <motion.div
               key={i}
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.9, delay: 0.5 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.85, delay: 0.45 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
             >
               <h1
-                className="block text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-semibold tracking-[-0.04em] leading-[0.92]"
-                style={{
-                  fontFamily: 'var(--font-space-grotesk)',
-                  color: i === 2 ? 'var(--accent)' : 'rgba(248,250,252,0.96)',
-                  textShadow: i === 2 ? '0 0 48px rgba(93,255,196,0.25)' : 'none',
-                }}
+                className={`font-serif-display block text-5xl font-normal leading-[1.02] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl ${
+                  i === 2 ? 'text-[var(--accent)]' : 'text-[var(--white)]'
+                }`}
               >
                 {line}
               </h1>
@@ -59,90 +50,57 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
           ))}
         </div>
 
-        {/* Subtitle */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.1 }}
-          className="text-sm md:text-lg max-w-md leading-relaxed mb-12 font-light"
-          style={{ color: 'rgba(180,190,200,0.85)' }}
+          transition={{ duration: 0.75, delay: 1.0 }}
+          className="mb-14 max-w-lg text-sm font-light leading-relaxed text-[var(--text)] md:text-base"
         >
-          Scroll — mist becomes forest, forest opens to stars, stars collapse into form, then the garden returns.
+          Real-time 3D, filmic motion, and editorial design — one continuous scroll through light, form, and space.
         </motion.p>
 
-        {/* CTAs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.3 }}
-          className="flex flex-col sm:flex-row gap-4"
+          transition={{ duration: 0.75, delay: 1.15 }}
+          className="flex flex-col gap-3 sm:flex-row sm:gap-4"
         >
           <button
-            className="px-8 py-4 font-mono text-sm tracking-widest uppercase transition-all duration-300"
-            style={{
-              background: 'var(--accent)',
-              color: 'var(--bg)',
-              border: '1px solid var(--accent)',
-              borderRadius: '2px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 0 30px rgba(0,255,255,0.5)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = 'none'
-            }}
+            type="button"
+            className="border border-[var(--white)] bg-[var(--white)] px-8 py-3.5 font-mono-ui text-[11px] uppercase tracking-[0.2em] text-[var(--bg)] transition-opacity hover:opacity-90"
             onClick={() => {
               const maxScroll = document.documentElement.scrollHeight - window.innerHeight
               window.scrollTo({ top: SECTION_SCROLL_ANCHORS.projects * maxScroll, behavior: 'smooth' })
             }}
           >
-            View Work
+            View work
           </button>
           <button
-            className="px-8 py-4 font-mono text-sm tracking-widest uppercase transition-all duration-300"
-            style={{
-              background: 'transparent',
-              color: 'var(--white)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '2px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent)'
-              e.currentTarget.style.color = 'var(--accent)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
-              e.currentTarget.style.color = 'var(--white)'
-            }}
+            type="button"
+            className="border border-[var(--border)] bg-transparent px-8 py-3.5 font-mono-ui text-[11px] uppercase tracking-[0.2em] text-[var(--white)] transition-colors hover:border-[var(--accent-muted)] hover:text-[var(--accent)]"
             onClick={() => {
               const maxScroll = document.documentElement.scrollHeight - window.innerHeight
               window.scrollTo({ top: SECTION_SCROLL_ANCHORS.contact * maxScroll, behavior: 'smooth' })
             }}
           >
-            Get in Touch
+            Start a project
           </button>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.6 }}
-          className="absolute bottom-24 left-6 md:left-16 flex gap-10"
+          transition={{ duration: 0.9, delay: 1.45 }}
+          className="absolute bottom-28 left-6 flex gap-12 md:left-16"
         >
           {[
-            { value: '12+', label: 'Years of R&D' },
-            { value: '50+', label: 'Awards Won' },
-            { value: '200+', label: 'Projects Shipped' },
+            { value: '15+', label: 'Years' },
+            { value: '120+', label: 'Launches' },
+            { value: '40+', label: 'Awards' },
           ].map(({ value, label }) => (
-            <div key={label} className="flex flex-col">
-              <span
-                className="text-2xl font-bold"
-                style={{ color: 'var(--accent)', fontFamily: 'var(--font-space-grotesk)' }}
-              >
-                {value}
-              </span>
-              <span className="font-mono text-xs" style={{ color: 'var(--muted)' }}>{label}</span>
+            <div key={label} className="flex flex-col gap-1">
+              <span className="font-serif-display text-2xl text-[var(--white)] md:text-3xl">{value}</span>
+              <span className="font-mono-ui text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">{label}</span>
             </div>
           ))}
         </motion.div>

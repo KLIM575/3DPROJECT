@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #020504;
-  --accent: #5dffc4;
-  --accent-secondary: #2a9d7a;
-  --accent-tertiary: #6b7cff;
-  --text: #C0C0E0;
-  --muted: #4A4A6A;
-  --border: rgba(93, 255, 196, 0.18);
-  --white: #FFFFFF;
+  --bg: #0c0c0e;
+  --bg-elevated: #121214;
+  --accent: #c4a574;
+  --accent-muted: rgba(196, 165, 116, 0.45);
+  --accent-secondary: #8b9bb4;
+  --accent-tertiary: #6a7380;
+  --text: #d8d6d3;
+  --muted: #6b6a68;
+  --border: rgba(255, 255, 255, 0.08);
+  --white: #f5f3f0;
 }
 
 * {
@@ -24,7 +26,7 @@ html {
 }
 
 body {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
@@ -59,35 +61,21 @@ html.lenis, html.lenis body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent);
+  background: var(--accent-muted);
   border-radius: 2px;
 }
 
-/* Typography */
-.font-mono {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+.font-serif-display {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
 }
 
-/* Neon glow text */
-.text-glow {
-  text-shadow:
-    0 0 10px var(--accent),
-    0 0 20px var(--accent),
-    0 0 40px var(--accent);
+.font-mono-ui {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
-.text-glow-sm {
-  text-shadow:
-    0 0 5px var(--accent),
-    0 0 10px var(--accent);
-}
-
-/* Neon border */
-.border-glow {
-  border: 1px solid var(--accent);
-  box-shadow:
-    0 0 10px var(--accent),
-    inset 0 0 10px rgba(0, 255, 255, 0.05);
+/* Subtle emphasis — avoid neon glow */
+.text-accent-soft {
+  color: var(--accent);
 }
 
 /* Canvas overlay - sits fixed behind UI */
@@ -129,8 +117,8 @@ html.lenis, html.lenis body {
 
 /* Custom selection */
 ::selection {
-  background: rgba(0, 255, 255, 0.2);
-  color: var(--accent);
+  background: rgba(196, 165, 116, 0.22);
+  color: var(--white);
 }
 
 /* Noise texture overlay */
@@ -140,7 +128,7 @@ html.lenis, html.lenis body {
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.045;
+  opacity: 0.028;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 128px;
@@ -156,16 +144,6 @@ html.lenis, html.lenis body {
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-30px); }
   to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); }
-  50% { box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent), 0 0 60px var(--accent); }
-}
-
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
 }
 
 .animate-fade-in {

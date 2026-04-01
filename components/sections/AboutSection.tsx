@@ -5,86 +5,71 @@ import { SectionTitle } from '../ui/SectionTitle'
 
 export function AboutSection() {
   return (
-    <section className="relative min-h-screen px-6 md:px-16 py-24 md:py-32 flex items-center">
-      <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        {/* Left: text */}
-        <div className="flex flex-col gap-8">
+    <section className="relative flex min-h-screen items-center px-6 py-24 md:px-16 md:py-32">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-24">
+        <div className="flex flex-col gap-10">
           <SectionTitle
-            label="About"
-            title="Obsessed with real-time."
+            label="Studio"
+            title="Design, engineering, and real-time craft."
           />
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.75, delay: 0.15 }}
             className="flex flex-col gap-5"
           >
-            <p className="text-base leading-relaxed" style={{ color: 'var(--text)' }}>
-              Founded in 2012, we're a creative studio built on the belief that the browser
-              is the most powerful canvas in existence. We've spent over a decade pushing WebGL,
-              WebGPU and real-time rendering to their absolute limits.
+            <p className="text-base leading-relaxed text-[var(--text)]">
+              We are a small team obsessed with how light, motion, and interaction feel in the browser. Our work
+              lives at the intersection of editorial design, WebGL, and performance.
             </p>
-            <p className="text-base leading-relaxed" style={{ color: 'var(--text)' }}>
-              Our proprietary rendering pipeline delivers award-winning experiences that
-              consistently clock sub-1.5s LCP despite heavy shader workloads. We call it
-              making the impossible feel inevitable.
+            <p className="text-base leading-relaxed text-[var(--text)]">
+              Every launch is treated like a product: clear narrative, restrained UI, and a 3D layer that supports
+              the story instead of overpowering it.
             </p>
           </motion.div>
 
-          {/* Philosophy items */}
-          <motion.div
+          <motion.ul
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
             className="flex flex-col gap-4"
           >
             {[
-              { icon: '◈', text: 'Performance is aesthetics — 60fps or bust.' },
-              { icon: '⬡', text: 'We build our own tools when existing ones fall short.' },
-              { icon: '◎', text: 'Every interaction should feel like a discovery.' },
-            ].map(({ icon, text }) => (
-              <div key={text} className="flex items-start gap-4">
-                <span className="text-lg mt-0.5" style={{ color: 'var(--accent)' }}>{icon}</span>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{text}</p>
-              </div>
+              'Motion and scroll as a single timeline.',
+              'Custom pipelines when tools stop short.',
+              'Quiet interfaces, loud craft.',
+            ].map(text => (
+              <li key={text} className="flex gap-4 text-sm leading-relaxed text-[var(--text)]">
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--accent)] opacity-70" />
+                {text}
+              </li>
             ))}
-          </motion.div>
+          </motion.ul>
         </div>
 
-        {/* Right: awards / stats grid */}
         <motion.div
-          initial={{ opacity: 0, x: 30 }}
+          initial={{ opacity: 0, x: 24 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="grid grid-cols-2 gap-4"
+          transition={{ duration: 0.75, delay: 0.2 }}
+          className="grid grid-cols-2 gap-3 md:gap-4"
         >
           {[
-            { value: '50+', label: 'Awwwards', sub: 'Site of the Day' },
-            { value: '12', label: 'Webby Awards', sub: 'Best in Category' },
-            { value: '200+', label: 'Projects', sub: 'Shipped Worldwide' },
-            { value: '8', label: 'Countries', sub: 'Global Clients' },
+            { value: '50+', label: 'Recognitions', sub: 'Industry features' },
+            { value: '12', label: 'Years', sub: 'Continuous practice' },
+            { value: '200+', label: 'Shipped', sub: 'Global launches' },
+            { value: '8', label: 'Regions', sub: 'Remote-first' },
           ].map(({ value, label, sub }) => (
             <div
               key={label}
-              className="p-6 flex flex-col gap-2"
-              style={{
-                border: '1px solid var(--border)',
-                background: 'rgba(0,255,255,0.02)',
-                borderRadius: '2px',
-              }}
+              className="flex flex-col gap-2 border border-[var(--border)] bg-[var(--bg-elevated)] p-6 md:p-7"
             >
-              <span
-                className="text-4xl font-bold"
-                style={{ color: 'var(--accent)', fontFamily: 'var(--font-space-grotesk)' }}
-              >
-                {value}
-              </span>
-              <span className="font-bold text-sm" style={{ color: 'var(--white)' }}>{label}</span>
-              <span className="font-mono text-xs" style={{ color: 'var(--muted)' }}>{sub}</span>
+              <span className="font-serif-display text-3xl text-[var(--accent)] md:text-4xl">{value}</span>
+              <span className="text-sm font-medium text-[var(--white)]">{label}</span>
+              <span className="font-mono-ui text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">{sub}</span>
             </div>
           ))}
         </motion.div>

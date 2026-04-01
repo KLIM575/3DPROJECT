@@ -2,154 +2,84 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Project } from '@/data/portfolio'
+import type { Project } from '@/data/portfolio'
 
 interface ProjectCardProps {
   project: Project
   index: number
-  total: number
 }
 
-export function ProjectCard({ project, index, total }: ProjectCardProps) {
+export function ProjectCard({ project, index }: ProjectCardProps) {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
+    <motion.article
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.7, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.65, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative cursor-pointer group"
-      style={{
-        transform: `scale(${hovered ? 1.02 : 1})`,
-        transition: 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease',
-        opacity: hovered ? 1 : 0.85,
-      }}
+      className="group cursor-pointer"
     >
-      {/* Card */}
       <div
-        className="relative overflow-hidden"
+        className="overflow-hidden border border-[var(--border)] bg-[var(--bg-elevated)] transition-colors duration-500"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: `1px solid ${hovered ? project.color : 'rgba(255,255,255,0.06)'}`,
-          boxShadow: hovered ? `0 0 30px ${project.color}22, 0 0 60px ${project.color}11` : 'none',
-          transition: 'all 0.4s ease',
-          borderRadius: '2px',
+          borderColor: hovered ? 'rgba(255,255,255,0.14)' : undefined,
         }}
       >
-        {/* Preview area */}
         <div
-          className="relative w-full aspect-video overflow-hidden"
-          style={{ background: `${project.color}08` }}
+          className="relative aspect-[16/10] w-full overflow-hidden"
+          style={{ background: `linear-gradient(145deg, ${project.color}14, transparent 55%)` }}
         >
-          {/* Animated gradient preview */}
           <motion.div
             className="absolute inset-0"
-            animate={{
-              background: hovered
-                ? [
-                    `radial-gradient(circle at 20% 50%, ${project.color}33 0%, transparent 60%)`,
-                    `radial-gradient(circle at 80% 50%, ${project.color}33 0%, transparent 60%)`,
-                    `radial-gradient(circle at 20% 50%, ${project.color}33 0%, transparent 60%)`,
-                  ]
-                : `radial-gradient(circle at 50% 50%, ${project.color}11 0%, transparent 70%)`,
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-          />
-
-          {/* Grid pattern */}
-          <div
-            className="absolute inset-0 opacity-10"
+            animate={{ scale: hovered ? 1.03 : 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              backgroundImage: `linear-gradient(${project.color}40 1px, transparent 1px), linear-gradient(90deg, ${project.color}40 1px, transparent 1px)`,
-              backgroundSize: '30px 30px',
+              background: `radial-gradient(ellipse 80% 60% at 50% 40%, ${project.color}22, transparent 70%)`,
             }}
           />
 
-          {/* Corner accent */}
-          <div
-            className="absolute top-3 left-3 flex items-center gap-2 font-mono text-xs"
-            style={{ color: project.color }}
-          >
-            <span className="opacity-60">{String(index + 1).padStart(2, '0')}</span>
-            <span
-              className="px-1.5 py-0.5 text-xs"
-              style={{
-                background: `${project.color}20`,
-                border: `1px solid ${project.color}40`,
-                borderRadius: '2px',
-              }}
-            >
+          <div className="absolute left-4 top-4 flex items-center gap-3">
+            <span className="font-mono-ui text-[10px] tabular-nums text-[var(--muted)]">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <span className="font-mono-ui text-[10px] uppercase tracking-[0.16em] text-[var(--text)]">
               {project.category}
             </span>
           </div>
+          <span className="absolute right-4 top-4 font-mono-ui text-[10px] text-[var(--muted)]">{project.year}</span>
 
-          {/* Year */}
-          <div
-            className="absolute top-3 right-3 font-mono text-xs opacity-40"
-            style={{ color: project.color }}
-          >
-            {project.year}
-          </div>
-
-          {/* Hover indicator */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
+            initial={false}
             animate={{ opacity: hovered ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25 }}
           >
-            <span
-              className="font-mono text-xs tracking-widest"
-              style={{ color: project.color }}
-            >
-              VIEW PROJECT →
+            <span className="font-mono-ui text-[10px] uppercase tracking-[0.22em] text-[var(--white)]">
+              View case →
             </span>
           </motion.div>
         </div>
 
-        {/* Content */}
-        <div className="p-5">
-          <h3
-            className="text-lg font-bold mb-2 tracking-tight"
-            style={{ color: 'var(--white)', fontFamily: 'var(--font-space-grotesk)' }}
-          >
+        <div className="p-5 md:p-6">
+          <h3 className="mb-2 font-serif-display text-xl tracking-tight text-[var(--white)] md:text-2xl">
             {project.title}
           </h3>
-          <p
-            className="text-sm leading-relaxed mb-4 line-clamp-2"
-            style={{ color: 'var(--text)' }}
-          >
-            {project.description}
-          </p>
-
-          {/* Tags */}
+          <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-[var(--text)]">{project.description}</p>
           <div className="flex flex-wrap gap-2">
             {project.tags.map(tag => (
               <span
                 key={tag}
-                className="font-mono text-xs px-2 py-0.5"
-                style={{
-                  color: 'var(--muted)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: '2px',
-                }}
+                className="border border-[var(--border)] px-2 py-0.5 font-mono-ui text-[10px] uppercase tracking-wider text-[var(--muted)]"
               >
                 {tag}
               </span>
             ))}
           </div>
         </div>
-
-        {/* Bottom accent line */}
-        <motion.div
-          className="absolute bottom-0 left-0 h-px"
-          animate={{ width: hovered ? '100%' : '0%' }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          style={{ background: project.color }}
-        />
       </div>
-    </motion.div>
+    </motion.article>
   )
 }

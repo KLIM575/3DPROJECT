@@ -12,12 +12,12 @@ export function LoadingScreen() {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval)
-          setTimeout(() => setDone(true), 400)
+          setTimeout(() => setDone(true), 320)
           return 100
         }
-        return prev + Math.random() * 12 + 4
+        return prev + Math.random() * 11 + 5
       })
-    }, 80)
+    }, 70)
     return () => clearInterval(interval)
   }, [])
 
@@ -25,54 +25,32 @@ export function LoadingScreen() {
     <AnimatePresence>
       {!done && (
         <motion.div
-          exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
+          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center"
           style={{ background: 'var(--bg)' }}
         >
-          {/* Logo */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-8"
+            className="flex flex-col items-center gap-10"
           >
-            <div
-              className="text-4xl font-bold tracking-widest"
-              style={{
-                color: 'var(--accent)',
-                textShadow: '0 0 30px rgba(0,255,255,0.5)',
-                fontFamily: 'var(--font-space-grotesk)',
-              }}
-            >
-              ◈
-            </div>
+            <span className="font-serif-display text-2xl tracking-tight text-[var(--white)]">Studio</span>
 
-            <div className="flex flex-col items-center gap-3">
-              <div
-                className="font-mono text-xs tracking-widest"
-                style={{ color: 'var(--muted)' }}
-              >
-                INITIALIZING RENDER ENGINE
-              </div>
-
-              {/* Progress bar */}
-              <div
-                className="w-48 h-px relative overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.05)' }}
-              >
+            <div className="flex flex-col items-center gap-4">
+              <span className="font-mono-ui text-[10px] uppercase tracking-[0.26em] text-[var(--muted)]">
+                Loading
+              </span>
+              <div className="relative h-px w-40 overflow-hidden bg-[var(--border)]">
                 <motion.div
-                  className="absolute top-0 left-0 h-full"
-                  style={{ background: 'var(--accent)', width: `${progress}%` }}
+                  className="absolute left-0 top-0 h-full bg-[var(--accent)]"
+                  style={{ width: `${Math.min(progress, 100)}%` }}
                 />
               </div>
-
-              <div
-                className="font-mono text-xs"
-                style={{ color: 'var(--accent)' }}
-              >
-                {Math.min(Math.round(progress), 100)}%
-              </div>
+              <span className="font-mono-ui text-[10px] tabular-nums text-[var(--muted)]">
+                {Math.min(Math.round(progress), 100)}
+              </span>
             </div>
           </motion.div>
         </motion.div>

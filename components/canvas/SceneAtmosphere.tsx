@@ -10,14 +10,14 @@ interface SceneAtmosphereProps {
 }
 
 const FOG_PRESETS: Record<number, { color: number; density: number }> = {
-  0: { color: 0x041208, density: 0.024 },
-  1: { color: 0x050f0a, density: 0.032 },
-  2: { color: 0x050f0a, density: 0.032 },
-  3: { color: 0x040818, density: 0.022 },
-  4: { color: 0x040818, density: 0.022 },
-  5: { color: 0x061a0e, density: 0.056 },
-  6: { color: 0x05140c, density: 0.028 },
-  7: { color: 0x05140c, density: 0.026 },
+  0: { color: 0x0e0e10, density: 0.02 },
+  1: { color: 0x0c0c0f, density: 0.026 },
+  2: { color: 0x0b0b0e, density: 0.026 },
+  3: { color: 0x0d0e12, density: 0.018 },
+  4: { color: 0x0c0d14, density: 0.018 },
+  5: { color: 0x101018, density: 0.038 },
+  6: { color: 0x0f0f12, density: 0.024 },
+  7: { color: 0x0e0e11, density: 0.022 },
 }
 
 export function SceneAtmosphere({ progress }: SceneAtmosphereProps) {
@@ -29,7 +29,7 @@ export function SceneAtmosphere({ progress }: SceneAtmosphereProps) {
   progressRef.current = progress
 
   useEffect(() => {
-    fogRef.current = new THREE.FogExp2(0x020504, 0.02)
+    fogRef.current = new THREE.FogExp2(0x0c0c0e, 0.02)
     scene.fog = fogRef.current
     return () => {
       scene.fog = null
